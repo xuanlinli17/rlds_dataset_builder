@@ -28,15 +28,16 @@ else:
 # create TF dataset
 dataset_name = args.dataset_name
 print(f"Visualizing data from dataset: {dataset_name}")
-module = importlib.import_module(dataset_name)
+# module = importlib.import_module(dataset_name)
 ds = tfds.load(dataset_name, split='train')
 ds = ds.shuffle(100)
 
 # visualize episodes
-for i, episode in enumerate(ds.take(5)):
+for i, episode in enumerate(ds.take(1)):
     images = []
     for step in episode['steps']:
         images.append(step['observation']['image'].numpy())
+    # print(len(images))
     image_strip = np.concatenate(images[::4], axis=1)
     caption = step['language_instruction'].numpy().decode() + ' (temp. downsampled 4x)'
 

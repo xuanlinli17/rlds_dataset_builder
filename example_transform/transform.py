@@ -1,6 +1,7 @@
 from typing import Any, Dict
 import numpy as np
 from PIL import Image
+from transforms3d.euler import axangle2euler
 
 
 ################################################################################################
@@ -63,12 +64,20 @@ def transform_step(step: Dict[str, Any]) -> Dict[str, Any]:
        Input is dict of numpy arrays."""
     img = Image.fromarray(step['observation']['image']).resize(
         (128, 128), Image.Resampling.LANCZOS)
+    action_translation = step['action'][:3] * 0.1 # actual translation in meters
+    action_axis_angle = step['action'][3:6] * 0.1
+    action_axis = action_axis_angle / np.linalg.norm(action_axis_angle)
+    action_angle = np.linalg.norm(action_axis_angle) # actual angle in radians
     transformed_step = {
         'observation': {
             'image': np.array(img),
         },
         'action': np.concatenate(
-            [step['action'][:3], step['action'][5:8], step['action'][-2:]]),
+            [action_translation,
+             np.array(axangle2euler(action_axis, action_angle, axes='szyx')), # yaw, pitch, roll
+             # step['action'][3:6] * np.pi, 
+             step['action'][-1:],
+             np.array([step['is_terminal']], dtype=np.float32)]),
     }
 
     # copy over all other fields unchanged
