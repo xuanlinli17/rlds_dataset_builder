@@ -10,12 +10,12 @@ import cv2
 
 
 class ManiSkill2Dataset(tfds.core.GeneratorBasedBuilder):
-    """DatasetBuilder for example dataset."""
 
     VERSION = tfds.core.Version('1.0.0')
     RELEASE_NOTES = {
       '1.0.0': 'Initial release.',
     }
+    NUM_EPISODES_PER_ENV = -1
 
     def __init__(self, *args, **kwargs):
         self.image_resolution = kwargs.pop("img_resolution", 256)
@@ -371,6 +371,10 @@ class ManiSkill2Dataset(tfds.core.GeneratorBasedBuilder):
         for env_name, path in zip(env_names, paths):
             with h5py.File(path, 'r') as h5_file:
                 episode_ids = sorted(h5_file.keys())
+            if self.NUM_EPISODES_PER_ENV > 0:
+                np.random.shuffle(episode_ids)
+                episode_ids = episode_ids[:self.NUM_EPISODES_PER_ENV]
+            print(env_name, "length", len(episode_ids))
             for episode_id in episode_ids:
                 yield _parse_example({'env_name': env_name, 'h5_path': path, 'episode_id': episode_id})
 
@@ -387,6 +391,9 @@ class ManiSkill2Dataset(tfds.core.GeneratorBasedBuilder):
         # for env_name, path in zip(env_names, paths):
         #     with h5py.File(path, 'r') as h5_file:
         #         episode_ids = sorted(h5_file.keys())
+        #     if self.NUM_EPISODES_PER_ENV > 0:
+        #         np.random.shuffle(episode_ids)
+        #         episode_ids = episode_ids[:self.NUM_EPISODES_PER_ENV]
         #     for episode_id in episode_ids:
         #         args.append({'env_name': env_name, 'h5_path': path, 'episode_id': episode_id})
                 
