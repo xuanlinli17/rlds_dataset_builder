@@ -40,7 +40,7 @@ arm_pd_base_ee_delta_pose = PDEEPoseControllerConfig(
         )
 ```
 
-When transforming the demonstrations for X-embodiment training using `example_transform/transform.py`, the demonstration actions (in the range of [-1, 1]) will be mapped to the absolute `xyz` delta movements (in meters) and the absolute `yaw, pitch, roll` movements (in radians).
+When transforming the demonstrations for X-embodiment training using `example_transform/transform.py`, the demonstration actions (in the range of [-1, 1]) will be mapped to the delta `xyz` movements in meters and the delta `yaw, pitch, roll` movements in radians.
 
 Gripper control mode: `gripper_pd_joint_pos`, i.e., joint position controller.
 
