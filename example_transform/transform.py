@@ -66,18 +66,20 @@ def transform_step(step: Dict[str, Any]) -> Dict[str, Any]:
         (128, 128), Image.Resampling.LANCZOS)
     action_translation = step['action'][:3] * 0.1 # actual translation in meters
     action_axis_angle = step['action'][3:6] * 0.1
-    action_axis = action_axis_angle / np.linalg.norm(action_axis_angle)
-    action_angle = np.linalg.norm(action_axis_angle) # actual angle in radians
+    action_axis_angle_norm = np.linalg.norm(action_axis_angle)
+    action_axis = action_axis_angle / (action_axis_angle_norm + 1e-8)
+    action_angle = action_axis_angle_norm # actual angle in radians
+    # print(action_translation, action_axis_angle, action_axis, action_angle)
     transformed_step = {
         'observation': {
             'image': np.array(img),
         },
         'action': np.concatenate(
             [action_translation,
-             np.array(axangle2euler(action_axis, action_angle, axes='szyx')), # yaw, pitch, roll
+             np.array(axangle2euler(action_axis, action_angle, axes='szyx')) if action_axis_angle_norm > 1e-4 else np.zeros(3), # yaw, pitch, roll
              # step['action'][3:6] * np.pi, 
-             step['action'][-1:],
-             np.array([step['is_terminal']], dtype=np.float32)]),
+             np.clip(step['action'][-1:], -1, 1),
+             np.array([step['is_terminal']], dtype=np.float32)]).astype(np.float32),
     }
 
     # copy over all other fields unchanged
